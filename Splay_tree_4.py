@@ -53,19 +53,16 @@ class SplayTree:
         node.parent = grandparent
 
         return node
-    
-    
+
     def zig_zag(self, node):
         node = self.zig(node)
         node = self.zag(node)
         return node
-    
-    
+
     def zag_zig(self, node):
         node = self.zag(node)
         node = self.zig(node)
         return node
-    
 
     def zig_zig(self, node):
         node.parent = self.zig(node.parent)
@@ -76,8 +73,6 @@ class SplayTree:
         node.parent = self.zag(node.parent)
         node = self.zag(node)
         return node
-
-
 
     def splay(self, node):
         while node and node.parent is not None:
@@ -101,9 +96,6 @@ class SplayTree:
         if node and node.parent is None:
             self.root = node
 
-
-            
-            
     def find_closest(self, key):
         current = self.root
         closest = None
@@ -120,16 +112,18 @@ class SplayTree:
 
         return closest
 
-
-            
-            
     def add(self, key, value):
         node = Node(key, value)
         root = self.root
         parent = None
+
+        if key is None or value is None:
+            raise ValueError('Invalid input: Key and value must not be None')
+
         if self.root is None:
             self.root = node
             return
+
         while root is not None:
             parent = root
             if key < root.key:
@@ -137,9 +131,8 @@ class SplayTree:
             elif key > root.key:
                 root = root.right
             else:
-                print('error')
                 self.splay(root)
-                return
+                raise ValueError('Element already exists')
 
         if node.key < parent.key:
             parent.left = node
@@ -147,8 +140,6 @@ class SplayTree:
             parent.right = node
         node.parent = parent
         self.splay(node)
-        return
-    
 
     def find_extreme(self, node, direction):
         while getattr(node, direction) is not None:
@@ -185,27 +176,20 @@ class SplayTree:
             self.splay(closest)
         return None
 
-
-
-
     def set(self, key, value):
         if self.root is None:
-            print('error')
-            return
-
+            raise ValueError('Tree is empty')
         node = self.search(key)
         if node:
             node.value = value
             self.splay(node)
         else:
-            print('error')
+            raise ValueError('Element not found')
         return
-
-
 
     def delete(self, key):
         if self.root is None:
-            print('error')
+            raise ValueError('Tree is empty')
         elif self.search(key):
             if self.root.right is None and self.root.left is None:
                 self.root = None
@@ -221,71 +205,41 @@ class SplayTree:
                 self.root.right = self.root.right.right
                 self.root.right.parent = self.root
         else:
-            print('error')
-        return
+            raise ValueError('Element not found')
 
+    def _print_def_(self, node, position_node, current_level, _printy_):
+        if current_level == len(_printy_):
+            _printy_.append(["_"] * (2 ** current_level))
 
-    def print_tree(self, children: list = None):
-        if children is None:    
-            if not self.root:
-                print('_')
-                return
-            print(f'[{self.root.key} {self.root.value}]')
-            self.print_tree([self.root.left, self.root.right])   
-            return
-
-        if not children:
-            return
-
-        is_end = True
-        for child in children:     
-            if type(child) == Node:
-                is_end = False
-                break
-        if is_end:
-            return
-
-        new_children = []    
-        for child in children[:-1]:
-            if type(child) == int:
-                print('_ '*child, end='')
-                new_children.append(child*2)
-            elif not child:
-                print('_ ', end='')
-                if not new_children:
-                    new_children.append(2)
-                elif type(new_children[-1]) == int:
-                    new_children[-1] += 2
-                else:
-                    new_children.append(2)
-            else:
-                print(f'[{child.key} {child.value} {child.parent.key}] ', end='')
-                new_children.extend([child.left, child.right])
-
-        if type(children[-1]) == int:
-            print('_ ' * (children[-1]-1) + '_', end='')
-            if not new_children:
-                new_children.append(children[-1] * 2)
-            elif type(new_children[-1]) == int:
-                new_children[-1] += children[-1] * 2
-            else:
-                new_children.append(children[-1] * 2)
-        elif not children[-1]:
-            print('_', end='')
-            if not new_children:
-                new_children.append(2)
-            elif type(new_children[-1]) == int:
-                new_children[-1] += 2
-            else:
-                new_children.append(2)
+        node_str = f"[{node.key} {node.value}"
+        if node.parent is not None:
+            node_str += f" {node.parent.key}]"
         else:
-            print(f'[{children[-1].key} {children[-1].value} {children[-1].parent.key}]', end='')
-            new_children.extend([children[-1].left, children[-1].right])
-        print()
-        self.print_tree(new_children) 
+            node_str += "]"
+
+        _printy_[current_level][position_node] = node_str
+
+        if node.left is not None:
+            self._print_def_(node.left, 2 * position_node,
+                             current_level + 1, _printy_)
+        if node.right is not None:
+            self._print_def_(node.right, 2 * position_node +
+                             1, current_level + 1, _printy_)
+
+    def print_tree(self):
+        print_tree = []
+        if self.root is None:
+            return "_\n"
+        self._print_def_(self.root, 0, 0, print_tree)
+        result = ""
+        for level in print_tree:
+            result += ' '.join(level) + "\n"
+
+        return result
 
 
 splay_tree = SplayTree()
+
 for line in sys.stdin:
     space = []
     for i in range(len(line)):
@@ -294,56 +248,82 @@ for line in sys.stdin:
     if line == '\n':
         pass
     elif (re.match(r'add\s[^\s]*\s[^\s]*', line)) and (len(space) == 2):
-        if line[4:space[1]:1].isdigit():
-            splay_tree.add(int(line[4:space[1]:1]), line[space[1] + 1:len(line)-1:1])
-        elif (line[4] == '-') and (line[5:space[1]:1].isdigit()):
-            splay_tree.add((-1)*int(line[5:space[1]:1]), line[space[1] + 1:len(line)-1:1])
-        else:
+        try:
+            if line[4:space[1]:1].isdigit():
+                splay_tree.add(int(line[4:space[1]:1]),
+                               line[space[1] + 1:len(line)-1:1])
+            elif (line[4] == '-') and (line[5:space[1]:1].isdigit()):
+                splay_tree.add((-1)*int(line[5:space[1]:1]),
+                               line[space[1] + 1:len(line)-1:1])
+            else:
+                raise ValueError('Invalid input')
+        except ValueError as e:
             print('error')
     elif (re.match(r'set\s[^\s]*\s[^\s]*', line)) and (len(space) == 2):
-        if line[4:space[1]:1].isdigit():
-            splay_tree.set(int(line[4:space[1]:1]), line[space[1] + 1:len(line)-1:1])
-        elif (line[4] == '-') and (line[5:space[1]:1].isdigit()):
-            splay_tree.set((-1) * int(line[5:space[1]:1]), line[space[1] + 1:len(line) - 1:1])
-        else:
+        try:
+            if line[4:space[1]:1].isdigit():
+                splay_tree.set(int(line[4:space[1]:1]),
+                               line[space[1] + 1:len(line)-1:1])
+            elif (line[4] == '-') and (line[5:space[1]:1].isdigit()):
+                splay_tree.set(
+                    (-1) * int(line[5:space[1]:1]), line[space[1] + 1:len(line) - 1:1])
+            else:
+                raise ValueError('Invalid input')
+        except ValueError as e:
             print('error')
     elif (re.match(r'delete\s[^\s]*', line)):
-        if len(line) > 7: 
-            if line[7:len(line)-1:1].isdigit():
-                splay_tree.delete(int(line[7:len(line)-1:1]))
-            elif (line[7] == '-') and (line[8:len(line)-1:1].isdigit()):
-                splay_tree.delete((-1)*int(line[8:len(line)-1:1]))
+        try:
+            if len(line) > 7:
+                if line[7:len(line)-1:1].isdigit():
+                    splay_tree.delete(int(line[7:len(line)-1:1]))
+                elif (line[7] == '-') and (line[8:len(line)-1:1].isdigit()):
+                    splay_tree.delete((-1)*int(line[8:len(line)-1:1]))
+                else:
+                    raise ValueError('Invalid input')
             else:
-                print('error')
-        else:
+                raise ValueError('Invalid input')
+        except ValueError as e:
             print('error')
     elif (re.match(r'search\s[^\s]*', line)):
-        if line[7:len(line) - 1:1].isdigit():
-            if splay_tree.search(int(line[7:len(line)-1:1])):
-                print('1 ' + splay_tree.root.value)
+        try:
+            if line[7:len(line) - 1:1].isdigit():
+                if splay_tree.search(int(line[7:len(line)-1:1])):
+                    print('1 ' + splay_tree.root.value)
+                else:
+                    print('0')
+            elif (line[7] == '-') and (line[8:len(line)-1:1].isdigit()):
+                if splay_tree.search((-1)*int(line[8:len(line)-1:1])):
+                    print('1 ' + splay_tree.root.value)
+                else:
+                    print('0')
             else:
-                print('0')
-        elif (line[7] == '-') and (line[8:len(line)-1:1].isdigit()):
-            if splay_tree.search((-1)*int(line[8:len(line)-1:1])):
-                print('1 ' + splay_tree.root.value)
-            else:
-                print('0')
-        else:
+                raise ValueError('Invalid input')
+        except ValueError as e:
             print('error')
     elif line == 'min\n':
-        if splay_tree.min(splay_tree.root):
-            print(str(splay_tree.root.key) + ' ' + splay_tree.root.value)
-        else:
+        try:
+            if splay_tree.min(splay_tree.root):
+                print(str(splay_tree.root.key) + ' ' + splay_tree.root.value)
+            else:
+                raise ValueError('Tree is empty')
+        except ValueError as e:
             print('error')
     elif line == 'max\n':
-        if splay_tree.max(splay_tree.root):
-            print(str(splay_tree.root.key) + ' ' + splay_tree.root.value)
-        else:
+        try:
+            if splay_tree.max(splay_tree.root):
+                print(str(splay_tree.root.key) + ' ' + splay_tree.root.value)
+            else:
+                raise ValueError('Tree is empty')
+        except ValueError as e:
             print('error')
     elif line == 'print\n':
-        if splay_tree.root is None:
-            print('_')
-            continue
-        splay_tree.print_tree()
+        try:
+            if splay_tree.root is None:
+                print('_')
+                continue
+            result = splay_tree.print_tree()
+            print(result, end="")
+        except Exception as e:
+            print('error')
     else:
         print('error')
