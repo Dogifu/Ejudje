@@ -7,7 +7,7 @@ Task №1 </br>
 На стандартный поток вывода напечатайте сумму этих чисел. https://github.com/Dogifu/Ejudje/blob/main/sum_1.py  </br> </br>
 
 Task №2 </br>
-Реализуйте дек (двустороннюю очередь), используя только массив. </br> </br>
+Реализуйте дек (двустороннюю очередь), используя только массив. https://github.com/Dogifu/Ejudje/blob/main/dequeue_2.py </br> </br>
 
 
 Task №3 </br>
