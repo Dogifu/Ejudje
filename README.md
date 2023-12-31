@@ -1,6 +1,6 @@
 # Ejudje
 These tasks are for BMSTU students </br> </br>
-For all questions write on Telegram @dogifu </br> </br>
+For all questions write on Telegram @DogiFu </br> </br>
 
 Task №1 </br>
 На стандартном потоке ввода задаётся последовательность целых чисел.
